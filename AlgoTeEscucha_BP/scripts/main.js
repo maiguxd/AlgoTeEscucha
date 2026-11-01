@@ -3,7 +3,7 @@ import { ActionFormData } from "@minecraft/server-ui";
 
 const ID = "listener:the_listener";
 const PAGE = "listener:unsent_page";
-const PRESENCE_GOAL = 8 * 60 * 20;
+const PRESENCE_GOAL = 2 * 60 * 20;
 const SPAWN_PERIOD = 200;
 
 const BARS = [
@@ -1485,14 +1485,14 @@ function trySpawn(now) {
   const covered = isCovered(player.dimension, player.location.x, player.location.y, player.location.z);
   let cave = false;
   if (night) {
-    if (Math.random() > 0.2) return;
+    if (Math.random() > 0.45) return;
     cave = covered || Math.random() < 0.5;
   } else if (covered) {
-    if (Math.random() > 0.06) return;
+    if (Math.random() > 0.22) return;
+    cave = true;
+  } else if (Math.random() < 0.10) {
     cave = true;
   } else if (Math.random() < 0.04) {
-    cave = true;
-  } else if (Math.random() < 0.012) {
     cave = false;
   } else {
     return;
