@@ -5,6 +5,8 @@ const ID = "listener:the_listener";
 const PAGE = "listener:unsent_page";
 const PRESENCE_GOAL = 2 * 60 * 20;
 const SPAWN_PERIOD = 2400;  // 2 min
+const PHANTOM_MIN = 4200;   // 3.5 min
+const PHANTOM_SPAN = 3600;  // hasta 6.5 min
 
 const BARS = [
   "action.listener.look",
@@ -1544,7 +1546,6 @@ function trySpawn(now) {
   const covered = isCovered(player.dimension, player.location.x, player.location.y, player.location.z);
   let cave = covered || (night && Math.random() < 0.45);
   let spot;
-  let phantom = false;
   // Alta probabilidad de aparecer a 9 bloques detrás
   if (Math.random() < 0.72) {
     spot = behindPlayer(player, 9);
@@ -1556,7 +1557,6 @@ function trySpawn(now) {
   if (!spot) spot = findSpawnSpot(player, cave);
   if (!spot && night) spot = findSpawnSpot(player, !cave);
   if (!spot) return;
-  if (Math.random() < 0.18) phantom = true;
   try {
     const entity = dim.spawnEntity(ID, spot);
     entity.setDynamicProperty("listener:state", "stalk");
@@ -1565,7 +1565,6 @@ function trySpawn(now) {
     entity.setDynamicProperty("listener:sz", spot.z);
     entity.setDynamicProperty("listener:tp_at", now + 200);
     entity.setDynamicProperty("listener:broke", 0);
-    if (phantom) entity.setDynamicProperty("listener:phantom", 1);
     try {
       player.playSound("block.wood.break", { volume: 0.85, pitch: 0.72 });
       player.dimension.playSound("block.wood.break", spot, { volume: 0.6, pitch: 0.7 });
@@ -1625,7 +1624,58 @@ world.afterEvents.entityDie.subscribe(function (event) {
   } catch (error) {}
 });
 
+function nextPhantomDelay() {
+  return PHANTOM_MIN + Math.floor(Math.random() * PHANTOM_SPAN);
+}
+
+function tryPhantom(now) {
+  if (Math.random() > 0.8) return;
+  if (floorBusy(now)) return;
+  let dim;
+  try {
+    dim = world.getDimension("overworld");
+  } catch (error) {
+    return;
+  }
+  try {
+    if (dim.getEntities({ type: ID }).length > 0) return;
+  } catch (error) {
+    return;
+  }
+  const ready = [];
+  const players = world.getPlayers();
+  for (let i = 0; i < players.length; i++) {
+    const player = players[i];
+    if (!isOverworld(player)) continue;
+    const mode = String(player.getGameMode());
+    if (mode !== "survival" && mode !== "adventure") continue;
+    if (num(player, "listener:presence") < PRESENCE_GOAL) continue;
+    ready.push(player);
+  }
+  if (ready.length === 0) return;
+  const player = ready[Math.floor(Math.random() * ready.length)];
+  let spot = behindPlayer(player, 8 + Math.random() * 3);
+  if (spot && dist3(spot, player.location) < 4) spot = undefined;
+  if (!spot) spot = behindPlayer(player, 9);
+  if (!spot) return;
+  try {
+    const entity = dim.spawnEntity(ID, spot);
+    entity.setDynamicProperty("listener:state", "stalk");
+    entity.setDynamicProperty("listener:sx", spot.x);
+    entity.setDynamicProperty("listener:sy", spot.y);
+    entity.setDynamicProperty("listener:sz", spot.z);
+    entity.setDynamicProperty("listener:tp_at", now + 200);
+    entity.setDynamicProperty("listener:broke", 0);
+    entity.setDynamicProperty("listener:phantom", 1);
+    try {
+      player.playSound("block.wood.break", { volume: 0.7, pitch: 0.85 });
+    } catch (e) {}
+  } catch (error) {}
+}
+
 let spawnAcc = 0;
+let phantomAcc = 0;
+let phantomWait = nextPhantomDelay();
 system.runInterval(function () {
   let now = 0;
   try {
@@ -1659,6 +1709,16 @@ system.runInterval(function () {
     spawnAcc = 0;
     try {
       trySpawn(now);
+    } catch (error) {
+      warn(error);
+    }
+  }
+  phantomAcc += 10;
+  if (phantomAcc >= phantomWait) {
+    phantomAcc = 0;
+    phantomWait = nextPhantomDelay();
+    try {
+      tryPhantom(now);
     } catch (error) {
       warn(error);
     }
