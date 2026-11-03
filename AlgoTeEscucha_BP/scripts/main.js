@@ -4,7 +4,7 @@ import { ActionFormData } from "@minecraft/server-ui";
 const ID = "listener:the_listener";
 const PAGE = "listener:unsent_page";
 const PRESENCE_GOAL = 2 * 60 * 20;
-const SPAWN_PERIOD = 200;
+const SPAWN_PERIOD = 2400;  // 2 min
 
 const BARS = [
   "action.listener.look",
@@ -1539,26 +1539,19 @@ function trySpawn(now) {
   if (ready.length === 0) return;
   const player = ready[Math.floor(Math.random() * ready.length)];
   const night = isNight();
+  const chance = night ? 0.60 : 0.50;
+  if (Math.random() > chance) return;
   const covered = isCovered(player.dimension, player.location.x, player.location.y, player.location.z);
-  let cave = false;
-  if (night) {
-    if (Math.random() > 0.45) return;
-    cave = covered || Math.random() < 0.5;
-  } else if (covered) {
-    if (Math.random() > 0.22) return;
-    cave = true;
-  } else if (Math.random() < 0.10) {
-    cave = true;
-  } else if (Math.random() < 0.04) {
-    cave = false;
-  } else {
-    return;
-  }
+  let cave = covered || (night && Math.random() < 0.45);
   let spot;
   let phantom = false;
-  if (isHouseLike(player)) {
+  // Alta probabilidad de aparecer a 9 bloques detrás
+  if (Math.random() < 0.72) {
+    spot = behindPlayer(player, 9);
+    if (spot && dist3(spot, player.location) < 4) spot = undefined;
+  }
+  if (!spot && isHouseLike(player)) {
     spot = behindPlayer(player, 3);
-    if (spot && dist3(spot, player.location) < 1.5) spot = undefined;
   }
   if (!spot) spot = findSpawnSpot(player, cave);
   if (!spot && night) spot = findSpawnSpot(player, !cave);
@@ -1573,6 +1566,10 @@ function trySpawn(now) {
     entity.setDynamicProperty("listener:tp_at", now + 200);
     entity.setDynamicProperty("listener:broke", 0);
     if (phantom) entity.setDynamicProperty("listener:phantom", 1);
+    try {
+      player.playSound("block.wood.break", { volume: 0.85, pitch: 0.72 });
+      player.dimension.playSound("block.wood.break", spot, { volume: 0.6, pitch: 0.7 });
+    } catch (e) {}
   } catch (error) {}
 }
 
