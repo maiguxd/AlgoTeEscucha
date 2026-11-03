@@ -866,18 +866,65 @@ function unmetPlayer(entity) {
   return best;
 }
 
-function behindPlayer(player) {
+function behindPlayer(player, dist) {
+  const d = typeof dist === "number" ? dist : 2.2;
   let view;
   try {
     view = player.getViewDirection();
   } catch (error) {
     view = { x: 0, y: 0, z: 1 };
   }
-  const x = player.location.x - view.x * 2.2;
-  const z = player.location.z - view.z * 2.2;
+  const x = player.location.x - view.x * d;
+  const z = player.location.z - view.z * d;
   const spot = settle(player.dimension, x, player.location.y, z);
   if (spot) return spot;
   return { x: x, y: player.location.y, z: z };
+}
+
+function isHouseLike(player) {
+  const dim = player.dimension;
+  const loc = player.location;
+  if (!isCovered(dim, loc.x, loc.y, loc.z)) return false;
+  if (lowCeiling(dim, loc.x, loc.y, loc.z)) return true;
+  if (isEnclosed(dim, loc.x, loc.y, loc.z)) return true;
+  return loc.y > 40 && isCovered(dim, loc.x, loc.y, loc.z);
+}
+
+const BREAKABLE = [
+  "minecraft:stone", "minecraft:cobblestone", "minecraft:dirt", "minecraft:grass_block",
+  "minecraft:gravel", "minecraft:sand", "minecraft:deepslate", "minecraft:cobbled_deepslate",
+  "minecraft:andesite", "minecraft:diorite", "minecraft:granite", "minecraft:tuff",
+  "minecraft:clay", "minecraft:mud", "minecraft:podzol", "minecraft:coarse_dirt"
+];
+
+function canBreak(id) {
+  if (!id) return false;
+  for (let i = 0; i < BREAKABLE.length; i++) if (id === BREAKABLE[i]) return true;
+  if (id.indexOf("stone") !== -1 || id.indexOf("dirt") !== -1 || id.indexOf("cobble") !== -1) return true;
+  return false;
+}
+
+function tryBreakAhead(entity) {
+  if (num(entity, "listener:broke") >= 3) return false;
+  const loc = entity.location;
+  const dim = entity.dimension;
+  const rot = entity.getRotation();
+  const yaw = ((rot.y || 0) * Math.PI) / 180;
+  const nx = -Math.sin(yaw);
+  const nz = Math.cos(yaw);
+  const bx = Math.floor(loc.x + nx * 1.1);
+  const by = Math.floor(loc.y);
+  const bz = Math.floor(loc.z + nz * 1.1);
+  const block = blockAt(dim, bx, by, bz);
+  if (!block || !canBreak(block.typeId)) return false;
+  try {
+    block.setType("minecraft:air");
+    entity.setDynamicProperty("listener:broke", num(entity, "listener:broke") + 1);
+    dim.playSound("dig.stone", { x: bx, y: by, z: bz }, { volume: 0.5, pitch: 0.7 });
+    return true;
+  } catch (error) {
+    return false;
+  }
 }
 
 function wantsAmbush(entity, player) {
@@ -1141,6 +1188,7 @@ function chaseTick(entity, now) {
   if (speed > SPEED_CAP) speed = SPEED_CAP;
   if (entity.getDynamicProperty("listener:ambush") === 1 && d < 20) return;
   const moved = stepToward(entity, player, speed);
+  if (moved && now % 15 === 0) tryBreakAhead(entity);
   if (moved && d < 8 && now >= num(entity, "listener:charge_at")) {
     metalAt(entity.dimension, entity.location, state === "hunt" ? 1 : 0.7, 1);
     entity.setDynamicProperty("listener:charge_at", now + 200 + Math.floor(Math.random() * 200));
@@ -1183,6 +1231,15 @@ function tickEntity(entity, now) {
     return;
   }
   const player = closestPlayer(entity, 48);
+
+  if (entity.getDynamicProperty("listener:phantom") === 1 && player) {
+    const pd = dist3(entity.location, player.location);
+    if (pd < 4.5) {
+      entity.setDynamicProperty("listener:vanish_at", now + 8);
+      try { entity.dimension.playSound("listener.teleport", entity.location, { volume: 0.3, pitch: 1.4 }); } catch (e) {}
+      return;
+    }
+  }
 
   if (!player) {
     const lost = num(entity, "listener:lost") + 10;
@@ -1497,9 +1554,16 @@ function trySpawn(now) {
   } else {
     return;
   }
-  let spot = findSpawnSpot(player, cave);
+  let spot;
+  let phantom = false;
+  if (isHouseLike(player)) {
+    spot = behindPlayer(player, 3);
+    if (spot && dist3(spot, player.location) < 1.5) spot = undefined;
+  }
+  if (!spot) spot = findSpawnSpot(player, cave);
   if (!spot && night) spot = findSpawnSpot(player, !cave);
   if (!spot) return;
+  if (Math.random() < 0.18) phantom = true;
   try {
     const entity = dim.spawnEntity(ID, spot);
     entity.setDynamicProperty("listener:state", "stalk");
@@ -1507,6 +1571,8 @@ function trySpawn(now) {
     entity.setDynamicProperty("listener:sy", spot.y);
     entity.setDynamicProperty("listener:sz", spot.z);
     entity.setDynamicProperty("listener:tp_at", now + 200);
+    entity.setDynamicProperty("listener:broke", 0);
+    if (phantom) entity.setDynamicProperty("listener:phantom", 1);
   } catch (error) {}
 }
 
