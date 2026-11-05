@@ -103,7 +103,7 @@
       "listener:hunt": {
         "minecraft:movement": { "value": 0 },
         "minecraft:mark_variant": { "value": 2 },
-        "minecraft:attack": { "damage": 8 }
+        "minecraft:attack": { "damage": 0 }
       },
       "listener:watched": {
         "minecraft:movement": { "value": 0.01 },
@@ -142,7 +142,7 @@
       "listener:strike": {
         "minecraft:movement": { "value": 0 },
         "minecraft:mark_variant": { "value": 4 },
-        "minecraft:attack": { "damage": 8 }
+        "minecraft:attack": { "damage": 0 }
       }
     },
     "events": {

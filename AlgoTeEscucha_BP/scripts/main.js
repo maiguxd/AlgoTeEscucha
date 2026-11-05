@@ -885,6 +885,47 @@ function unmetPlayer(entity) {
   return best;
 }
 
+function edgeOfVision(player) {
+  let view;
+  try {
+    view = player.getViewDirection();
+  } catch (error) {
+    view = { x: 0, y: 0, z: 1 };
+  }
+  let vx = view.x;
+  let vz = view.z;
+  const h = Math.sqrt(vx * vx + vz * vz) || 1;
+  vx /= h;
+  vz /= h;
+  const px = -vz;
+  const pz = vx;
+  const base = player.location;
+  for (let i = 0; i < 6; i++) {
+    const side = Math.random() < 0.5 ? 1 : -1;
+    const deg = 46 + Math.random() * 18;
+    const rad = (deg * Math.PI) / 180;
+    const fx = vx * Math.cos(rad) + px * side * Math.sin(rad);
+    const fz = vz * Math.cos(rad) + pz * side * Math.sin(rad);
+    const dist = 12 + Math.random() * 6;
+    const x = base.x + fx * dist;
+    const z = base.z + fz * dist;
+    const spot = settle(player.dimension, x, base.y, z);
+    if (!spot) continue;
+    if (dist3(spot, base) < 8) continue;
+    return spot;
+  }
+  return undefined;
+}
+
+function facePlayer(entity, player) {
+  try {
+    entity.teleport(entity.location, {
+      keepVelocity: false,
+      rotation: { x: 0, y: yawToward(entity.location, player.location) },
+    });
+  } catch (error) {}
+}
+
 function behindPlayer(player, dist) {
   const d = typeof dist === "number" ? dist : 2.2;
   let view;
@@ -985,9 +1026,6 @@ function strikeSeeYou(entity, player, now) {
       stayDuration: 28,
       fadeOutDuration: 16,
     });
-  } catch (error) {}
-  try {
-    player.applyDamage(8, { cause: EntityDamageCause.entityAttack, damagingEntity: entity });
   } catch (error) {}
   player.setDynamicProperty("listener:met", 1);
   player.setDynamicProperty("listener:music_at", now + 160);
@@ -1182,6 +1220,11 @@ function chaseTick(entity, now) {
   if (inDanger(entity)) return;
   const player = closestPlayer(entity, 48);
   if (!player) return;
+  if (now < num(entity, "listener:watch_until")) {
+    if (now % 4 === 0) facePlayer(entity, player);
+    if (entity.getDynamicProperty("listener:state") !== "stalk") setState(entity, "stalk");
+    return;
+  }
   if (now < num(entity, "listener:retreat_until")) {
     stepAway(entity, player);
     return;
@@ -1214,9 +1257,6 @@ function chaseTick(entity, now) {
   }
   if (moved && now % 20 === 0) snuffOneTorch(entity, now);
   if (state === "hunt" && d < 2.15 && now >= num(entity, "listener:hit_at")) {
-    try {
-      player.applyDamage(8, { cause: EntityDamageCause.entityAttack, damagingEntity: entity });
-    } catch (error) {}
     entity.setDynamicProperty("listener:hit_at", now + 48);
     playAttack(entity, now);
   }
@@ -1566,15 +1606,8 @@ function trySpawn(now) {
   if (Math.random() > chance) return;
   const covered = isCovered(player.dimension, player.location.x, player.location.y, player.location.z);
   let cave = covered || (night && Math.random() < 0.45);
-  let spot;
-  // Alta probabilidad de aparecer a 9 bloques detrás
-  if (Math.random() < 0.72) {
-    spot = behindPlayer(player, 9);
-    if (spot && dist3(spot, player.location) < 4) spot = undefined;
-  }
-  if (!spot && isHouseLike(player)) {
-    spot = behindPlayer(player, 3);
-  }
+  let spot = edgeOfVision(player);
+  if (!spot && isHouseLike(player)) spot = behindPlayer(player, 3);
   if (!spot) spot = findSpawnSpot(player, cave);
   if (!spot && night) spot = findSpawnSpot(player, !cave);
   if (!spot) return;
@@ -1586,6 +1619,8 @@ function trySpawn(now) {
     entity.setDynamicProperty("listener:sz", spot.z);
     entity.setDynamicProperty("listener:tp_at", now + 200);
     entity.setDynamicProperty("listener:broke", 0);
+    entity.setDynamicProperty("listener:watch_until", now + 140 + Math.floor(Math.random() * 80));
+    facePlayer(entity, player);
     try {
       player.playSound("block.wood.break", { volume: 0.85, pitch: 0.72 });
       player.dimension.playSound("block.wood.break", spot, { volume: 0.6, pitch: 0.7 });
@@ -1675,8 +1710,7 @@ function tryPhantom(now) {
   }
   if (ready.length === 0) return;
   const player = ready[Math.floor(Math.random() * ready.length)];
-  let spot = behindPlayer(player, 8 + Math.random() * 3);
-  if (spot && dist3(spot, player.location) < 4) spot = undefined;
+  let spot = edgeOfVision(player);
   if (!spot) spot = behindPlayer(player, 9);
   if (!spot) return;
   try {
@@ -1688,6 +1722,8 @@ function tryPhantom(now) {
     entity.setDynamicProperty("listener:tp_at", now + 200);
     entity.setDynamicProperty("listener:broke", 0);
     entity.setDynamicProperty("listener:phantom", 1);
+    entity.setDynamicProperty("listener:watch_until", now + 160);
+    facePlayer(entity, player);
     try {
       player.playSound("block.wood.break", { volume: 0.7, pitch: 0.85 });
     } catch (e) {}
