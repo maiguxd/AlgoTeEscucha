@@ -407,8 +407,25 @@ function tryOpenDoor(entity) {
 }
 
 function setState(entity, state) {
+  if (num(entity, "listener:attack_until") > 0) return;
   if (entity.getDynamicProperty("listener:state") === state) return;
   entity.setDynamicProperty("listener:state", state);
+  try {
+    entity.triggerEvent("listener:set_" + state);
+  } catch (error) {}
+}
+
+function playAttack(entity, now) {
+  entity.setDynamicProperty("listener:attack_until", now + 36);
+  try {
+    entity.triggerEvent("listener:set_strike");
+  } catch (error) {}
+}
+
+function clearAttack(entity) {
+  if (num(entity, "listener:attack_until") === 0) return;
+  entity.setDynamicProperty("listener:attack_until", 0);
+  const state = entity.getDynamicProperty("listener:state") || "stalk";
   try {
     entity.triggerEvent("listener:set_" + state);
   } catch (error) {}
@@ -1201,11 +1218,15 @@ function chaseTick(entity, now) {
       player.applyDamage(8, { cause: EntityDamageCause.entityAttack, damagingEntity: entity });
     } catch (error) {}
     entity.setDynamicProperty("listener:hit_at", now + 48);
+    playAttack(entity, now);
   }
 }
 
 function tickEntity(entity, now) {
   if (!alive(entity)) return;
+  if (num(entity, "listener:attack_until") > 0 && now >= num(entity, "listener:attack_until")) {
+    clearAttack(entity);
+  }
   const loc = entity.location;
   if (loc.y < -60) {
     const safe = readSafe(entity);

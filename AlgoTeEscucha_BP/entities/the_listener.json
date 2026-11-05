@@ -138,6 +138,11 @@
           "priority": 4,
           "close_door_after": false
         }
+      },
+      "listener:strike": {
+        "minecraft:movement": { "value": 0 },
+        "minecraft:mark_variant": { "value": 4 },
+        "minecraft:attack": { "damage": 8 }
       }
     },
     "events": {
@@ -149,25 +154,31 @@
       "listener:set_stalk": {
         "add": { "component_groups": ["listener:stalk"] },
         "remove": {
-          "component_groups": ["listener:hunt", "listener:watched", "listener:retreat"]
+          "component_groups": ["listener:hunt", "listener:watched", "listener:retreat", "listener:strike"]
         }
       },
       "listener:set_hunt": {
         "add": { "component_groups": ["listener:hunt"] },
         "remove": {
-          "component_groups": ["listener:stalk", "listener:watched", "listener:retreat"]
+          "component_groups": ["listener:stalk", "listener:watched", "listener:retreat", "listener:strike"]
         }
       },
       "listener:set_watched": {
         "add": { "component_groups": ["listener:watched"] },
         "remove": {
-          "component_groups": ["listener:stalk", "listener:hunt", "listener:retreat"]
+          "component_groups": ["listener:stalk", "listener:hunt", "listener:retreat", "listener:strike"]
         }
       },
       "listener:set_retreat": {
         "add": { "component_groups": ["listener:retreat"] },
         "remove": {
-          "component_groups": ["listener:stalk", "listener:hunt", "listener:watched"]
+          "component_groups": ["listener:stalk", "listener:hunt", "listener:watched", "listener:strike"]
+        }
+      },
+      "listener:set_strike": {
+        "add": { "component_groups": ["listener:strike"] },
+        "remove": {
+          "component_groups": ["listener:stalk", "listener:hunt", "listener:watched", "listener:retreat"]
         }
       }
     }

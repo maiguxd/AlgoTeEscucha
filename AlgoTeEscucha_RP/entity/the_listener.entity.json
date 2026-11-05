@@ -7,21 +7,21 @@
         "default": "entity_alphatest"
       },
       "textures": {
-        "default": "textures/entity/the_listener"
+        "default": "textures/entity/terror_skeleton"
       },
       "geometry": {
-        "default": "geometry.the_listener"
+        "default": "geometry.terror_skeleton"
       },
       "animations": {
-        "idle": "animation.the_listener.idle",
-        "walk": "animation.the_listener.walk",
-        "stare": "animation.the_listener.stare"
+        "idle": "animation.terror_skeleton.idle",
+        "walk": "animation.terror_skeleton.walk",
+        "attack": "animation.terror_skeleton.attack"
       },
       "scripts": {
         "animate": [
-          { "stare": "query.mark_variant == 1" },
+          { "attack": "query.mark_variant == 4" },
           { "walk": "query.mark_variant == 2" },
-          { "idle": "query.mark_variant != 1 && query.mark_variant != 2" }
+          { "idle": "query.mark_variant != 2 && query.mark_variant != 4" }
         ]
       },
       "render_controllers": ["controller.render.the_listener"],
