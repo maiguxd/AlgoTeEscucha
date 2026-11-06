@@ -15,11 +15,13 @@
         "bindings": "geometry.cabin_bindings"
       },
       "animations": {
-        "cabin_bound": "animation.terror_skeleton.cabin_bound"
+        "cabin_bound": "animation.terror_skeleton.cabin_bound",
+        "break_chains": "animation.terror_skeleton.break_chains",
+        "release_controller": "controller.animation.cabin_release"
       },
       "scripts": {
         "animate": [
-          "cabin_bound"
+          "release_controller"
         ]
       },
       "render_controllers": [

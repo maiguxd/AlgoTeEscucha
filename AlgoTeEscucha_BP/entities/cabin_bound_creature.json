@@ -5,7 +5,14 @@
       "identifier": "terror:cabin_bound_creature",
       "is_spawnable": true,
       "is_summonable": true,
-      "is_experimental": false
+      "is_experimental": false,
+      "properties": {
+        "terror:releasing": {
+          "type": "bool",
+          "default": false,
+          "client_sync": true
+        }
+      }
     },
     "components": {
       "minecraft:type_family": {
@@ -48,13 +55,63 @@
     "component_groups": {
       "terror:vanish": {
         "minecraft:instant_despawn": {}
+      },
+      "terror:release_timer": {
+        "minecraft:timer": {
+          "time": 3.4,
+          "looping": false,
+          "time_down_event": {
+            "event": "terror:release_finished",
+            "target": "self"
+          }
+        }
       }
     },
     "events": {
       "terror:release": {
+        "sequence": [
+          {
+            "filters": {
+              "test": "bool_property",
+              "domain": "terror:releasing",
+              "value": false
+            },
+            "set_property": {
+              "terror:releasing": true
+            },
+            "add": {
+              "component_groups": [
+                "terror:release_timer"
+              ]
+            }
+          }
+        ]
+      },
+      "terror:release_finished": {
+        "remove": {
+          "component_groups": [
+            "terror:release_timer"
+          ]
+        },
+        "queue_command": {
+          "command": "execute at @s run function terror_cabin/finish_release",
+          "target": "self"
+        }
+      },
+      "terror:vanish_now": {
         "add": {
           "component_groups": [
             "terror:vanish"
+          ]
+        }
+      },
+      "terror:reset_bound": {
+        "set_property": {
+          "terror:releasing": false
+        },
+        "remove": {
+          "component_groups": [
+            "terror:release_timer"
           ]
         }
       }

@@ -1,0 +1,30 @@
+{
+  "format_version": "1.10.0",
+  "animation_controllers": {
+    "controller.animation.cabin_release": {
+      "initial_state": "bound",
+      "states": {
+        "bound": {
+          "animations": [
+            "cabin_bound"
+          ],
+          "transitions": [
+            {
+              "releasing": "query.property('terror:releasing')"
+            }
+          ]
+        },
+        "releasing": {
+          "animations": [
+            "break_chains"
+          ],
+          "transitions": [
+            {
+              "bound": "!query.property('terror:releasing')"
+            }
+          ]
+        }
+      }
+    }
+  }
+}
