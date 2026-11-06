@@ -1,0 +1,35 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "terror:cabin_bound_creature",
+      "materials": {
+        "default": "entity_alphatest"
+      },
+      "textures": {
+        "default": "textures/entity/cabin_bound_terror_skeleton",
+        "bindings": "textures/entity/cabin_bindings"
+      },
+      "geometry": {
+        "default": "geometry.cabin_bound_terror_skeleton",
+        "bindings": "geometry.cabin_bindings"
+      },
+      "animations": {
+        "cabin_bound": "animation.terror_skeleton.cabin_bound"
+      },
+      "scripts": {
+        "animate": [
+          "cabin_bound"
+        ]
+      },
+      "render_controllers": [
+        "controller.render.default",
+        "controller.render.cabin_bindings"
+      ],
+      "spawn_egg": {
+        "base_color": "#40423E",
+        "overlay_color": "#8B969B"
+      }
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "terror:cabin_corpse",
+      "materials": {
+        "default": "entity_alphatest"
+      },
+      "textures": {
+        "default": "textures/entity/cabin_corpse"
+      },
+      "geometry": {
+        "default": "geometry.cabin_corpse"
+      },
+      "render_controllers": [
+        "controller.render.default"
+      ],
+      "spawn_egg": {
+        "base_color": "#28767C",
+        "overlay_color": "#AD896B"
+      }
+    }
+  }
+}

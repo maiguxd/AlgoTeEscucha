@@ -1,0 +1,88 @@
+{
+  "format_version": "1.8.0",
+  "animations": {
+    "animation.terror_skeleton.cabin_bound": {
+      "loop": true,
+      "animation_length": 4.5,
+      "bones": {
+        "root": {
+          "position": [
+            0,
+            -0.5,
+            0
+          ]
+        },
+        "chest": {
+          "rotation": [
+            "-4 + math.sin(query.anim_time * 80) * 0.25",
+            0,
+            0
+          ]
+        },
+        "neck": {
+          "rotation": [
+            -8,
+            0,
+            0
+          ]
+        },
+        "head": {
+          "rotation": [
+            -12,
+            0,
+            "4 + math.sin(query.anim_time * 60) * 0.3"
+          ]
+        },
+        "left_arm": {
+          "rotation": [
+            0,
+            0,
+            80
+          ]
+        },
+        "right_arm": {
+          "rotation": [
+            0,
+            0,
+            -80
+          ]
+        },
+        "left_forearm": {
+          "rotation": [
+            0,
+            0,
+            -10
+          ]
+        },
+        "right_forearm": {
+          "rotation": [
+            0,
+            0,
+            10
+          ]
+        },
+        "left_fingers": {
+          "rotation": [
+            0,
+            0,
+            -50
+          ]
+        },
+        "right_fingers": {
+          "rotation": [
+            0,
+            0,
+            50
+          ]
+        },
+        "jaw": {
+          "rotation": [
+            3,
+            0,
+            0
+          ]
+        }
+      }
+    }
+  }
+}

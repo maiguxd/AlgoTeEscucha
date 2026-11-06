@@ -1,0 +1,16 @@
+{
+  "format_version": "1.8.0",
+  "render_controllers": {
+    "controller.render.cabin_bindings": {
+      "geometry": "Geometry.bindings",
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ],
+      "textures": [
+        "Texture.bindings"
+      ]
+    }
+  }
+}

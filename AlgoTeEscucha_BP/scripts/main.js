@@ -1262,8 +1262,31 @@ function chaseTick(entity, now) {
   }
 }
 
+function claimFreed(entity, now) {
+  let tagged = false;
+  try {
+    tagged = entity.hasTag("cabin_freed");
+  } catch (error) {
+    return;
+  }
+  if (!tagged) return;
+  try {
+    entity.removeTag("cabin_freed");
+  } catch (error) {}
+  entity.setDynamicProperty("listener:watch_until", now + 120);
+  entity.setDynamicProperty("listener:state", "stalk");
+  let players = [];
+  try {
+    players = entity.dimension.getPlayers({ location: entity.location, maxDistance: 24 });
+  } catch (error) {}
+  for (let i = 0; i < players.length; i++) {
+    players[i].setDynamicProperty("listener:met", 1);
+  }
+}
+
 function tickEntity(entity, now) {
   if (!alive(entity)) return;
+  claimFreed(entity, now);
   if (num(entity, "listener:attack_until") > 0 && now >= num(entity, "listener:attack_until")) {
     clearAttack(entity);
   }
