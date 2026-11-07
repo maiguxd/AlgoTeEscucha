@@ -24,6 +24,7 @@ chat.listener.wake=§8§ono te deja dormir.
 book.listener.title=Página sin remitente
 book.listener.close=Cerrar
 book.listener.body=No lo escribiste.\n\nLa página ya estaba abierta. La tinta sigue húmeda, pero la letra no es tuya.\n\nSi estás leyendo esto en voz alta, para.\n\nDice tu nombre una vez, y solo de noche. Después guarda el silencio que queda.\n\nCuenta las puertas de tu casa. Hay una que no recuerdas haber cerrado. Esa es la que usa.\n\nSi el paso llega antes que la respiración, todavía está lejos.\nSi la respiración llega sola, ya está en la habitación.\n\nNo mires atrás para comprobarlo. Eso es lo único que le pide.
+book.listener.coords=\n\nAl margen, con otra letra:\nX %s\nY %s\nZ %s
 entity.terror:cabin_corpse.name=Guardián caído
 item.spawn_egg.entity.terror:cabin_corpse.name=Guardián caído
 entity.terror:cabin_bound_creature.name=Criatura encadenada

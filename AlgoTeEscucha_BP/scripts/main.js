@@ -520,11 +520,109 @@ function nearestListener(player) {
   return { entity: best, dist: bestDist };
 }
 
+function surfaceY(dim, x, z) {
+  let block;
+  try {
+    block = dim.getTopmostBlock({ x: x, z: z });
+  } catch (error) {
+    return undefined;
+  }
+  if (!block) return undefined;
+  let y = block.location.y;
+  for (let i = 0; i < 24; i++) {
+    let here;
+    try {
+      here = dim.getBlock({ x: x, y: y, z: z });
+    } catch (error) {
+      return undefined;
+    }
+    if (!here) return undefined;
+    const id = here.typeId || "";
+    if (
+      id === "minecraft:air" ||
+      id === "minecraft:cave_air" ||
+      id.indexOf("leaves") !== -1 ||
+      id.indexOf("log") !== -1 ||
+      id.indexOf("vine") !== -1
+    ) {
+      y -= 1;
+      continue;
+    }
+    if (id === "minecraft:water" || id === "minecraft:lava" || id.indexOf("flowing_") === 0) return undefined;
+    return y;
+  }
+  return undefined;
+}
+
+function ensureCabin(player) {
+  if (world.getDynamicProperty("listener:cabin_ok") === 1) {
+    return {
+      x: world.getDynamicProperty("listener:cabin_x"),
+      y: world.getDynamicProperty("listener:cabin_y"),
+      z: world.getDynamicProperty("listener:cabin_z"),
+    };
+  }
+  if (!isOverworld(player)) return undefined;
+  const dim = player.dimension;
+  const base = player.location;
+  let origin;
+  for (let n = 0; n < 8; n++) {
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 200 + Math.random() * 180;
+    const x = Math.floor(base.x + Math.cos(angle) * dist);
+    const z = Math.floor(base.z + Math.sin(angle) * dist);
+    const ground = surfaceY(dim, x, z);
+    if (typeof ground !== "number") continue;
+    const y = ground - 6;
+    if (y < -40) continue;
+    origin = { x: x, y: y, z: z };
+    break;
+  }
+  if (!origin) return undefined;
+  try {
+    dim.runCommand("structure load mystructure:terror_cabin " + origin.x + " " + origin.y + " " + origin.z);
+    dim.runCommand(
+      "summon terror:cabin_corpse " +
+        (origin.x + 4.5) + " " + (origin.y + 7) + " " + (origin.z + 5.5) + " 0 0"
+    );
+    dim.runCommand(
+      "summon terror:cabin_bound_creature " +
+        (origin.x + 5.5) + " " + (origin.y + 1.08) + " " + (origin.z + 9.3) + " 180 0"
+    );
+  } catch (error) {
+    warn(error);
+    return undefined;
+  }
+  const mark = { x: origin.x + 4, y: origin.y + 7, z: origin.z + 3 };
+  world.setDynamicProperty("listener:cabin_ok", 1);
+  world.setDynamicProperty("listener:cabin_x", mark.x);
+  world.setDynamicProperty("listener:cabin_y", mark.y);
+  world.setDynamicProperty("listener:cabin_z", mark.z);
+  return mark;
+}
+
 function showPage(player) {
+  try {
+    ensureCabin(player);
+  } catch (error) {
+    warn(error);
+  }
   try {
     const form = new ActionFormData();
     form.title({ translate: "book.listener.title" });
-    form.body({ translate: "book.listener.body" });
+    const x = world.getDynamicProperty("listener:cabin_x");
+    const y = world.getDynamicProperty("listener:cabin_y");
+    const z = world.getDynamicProperty("listener:cabin_z");
+    if (typeof x === "number" && typeof y === "number" && typeof z === "number") {
+      form.body({
+        rawtext: [
+          { translate: "book.listener.body" },
+          { translate: "book.listener.coords", with: [String(x), String(y), String(z)] },
+        ],
+      });
+    } else {
+      form.body({ translate: "book.listener.body" });
+    }
     form.button({ translate: "book.listener.close" });
     form.show(player).catch(function () {});
   } catch (error) {
@@ -537,6 +635,11 @@ function showPage(player) {
 function givePage(player) {
   if (player.getDynamicProperty("listener:known") === true) return;
   player.setDynamicProperty("listener:known", true);
+  try {
+    ensureCabin(player);
+  } catch (error) {
+    warn(error);
+  }
   try {
     const inventory = player.getComponent("minecraft:inventory") || player.getComponent("inventory");
     if (inventory && inventory.container) {

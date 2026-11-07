@@ -24,6 +24,7 @@ chat.listener.wake=§8§oit will not let you sleep.
 book.listener.title=Unsent Page
 book.listener.close=Close
 book.listener.body=You did not write this.\n\nThe page was already open. The ink is still wet, but the hand is not yours.\n\nIf you are reading this aloud, stop.\n\nIt says your name once, and only at night. Then it keeps the silence that is left.\n\nCount the doors in your house. There is one you do not remember closing. That is the one it uses.\n\nIf the footstep arrives before the breath, it is still far.\nIf the breath arrives alone, it is already in the room.\n\nDon't look back to check. That is the only thing it asks.
+book.listener.coords=\n\nIn the margin, in another hand:\nX %s\nY %s\nZ %s
 entity.terror:cabin_corpse.name=Fallen keeper
 item.spawn_egg.entity.terror:cabin_corpse.name=Fallen keeper
 entity.terror:cabin_bound_creature.name=Bound creature
