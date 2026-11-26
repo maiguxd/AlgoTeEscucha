@@ -1,0 +1,28 @@
+[
+ {
+  "shape": "the approach",
+  "theme": "custom",
+  "axes": "dark/high-contrast-serif/chromatic-red",
+  "hero": "full-bleed approach, four distances",
+  "nav": "overlay line",
+  "footer": "colophon",
+  "imagery": "product renders 9 (Blockbench, colour) and a 12 s trailer loop",
+  "photos": [],
+  "entry": "index.html",
+  "fingerprint": "approach/pinned-rules/letter/omens-trailer/facts/close",
+  "sections": [
+   "hero-approach",
+   "pinned-rules",
+   "letter",
+   "omens-trailer",
+   "facts",
+   "close",
+   "colophon"
+  ],
+  "signature": "it comes closer when you look away",
+  "waived": [],
+  "prompt": "Página de descarga de Algo te escucha, estilo terror a medida",
+  "date": "2026-11-26",
+  "mode": "build"
+ }
+]
